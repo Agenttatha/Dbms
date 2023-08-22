@@ -1,0 +1,64 @@
+Question Number 1:
+
+1. Consider tables Emp and Dept
+Emp ( eid, ename, sal, city, did)
+Dept (did, dname)
+Find enames , concern dname , city, sal of those who are earning less than average salary of their own
+department and lives in other than Hyderabad 
+
+Ans 1:
+
+ SELECT e.ename, d.dname, e.city, e.sal
+ FROM Emp e JOIN Dept d ON e.did = d.did
+ WHERE e.sal < ( SELECT AVG(sal)
+ FROM Emp e2 WHERE e.did = e2.did)AND e.city <> 'Hyderabad';
+
+Question Number 2:
+
+2. Consider tables Emp and Dept.
+Emp ( eid, ename, sal, did)
+Dept (did, dname)
+Find 3rd highest salary of each department. Output table should have two columns, one is dname and theother
+is 3rd highest salary of each department.
+
+Ans 2:
+
+ SELECT d.dname,SAL AS third_highest_salary
+ FROM Dept d JOIN (SELECT eid, did, sal, RANK() OVER
+
+ (PARTITION BY did ORDER BY sal DESC) ASsalary_rank FROM Emp) as e
+ ON d.did =e.didWHERE e.salary_rank = 3; 
+
+Question Number 3:
+
+3. Consider tables Emp and Dept.
+Emp ( eid, ename, sal, did)
+Dept (did, dname)
+Find the number of employees in each department whose salary is greater than average salary of their own
+department. Output table should have two column one is dname and other is count of employees as said above.
+
+Ans 3:
+
+SELECT d.dname, COUNT(*) AS employee_count
+ FROM Dept d JOIN ( SELECT eid, did, sal, AVG(sal) OVER (PARTITION BY did) AS avg_sal 
+ FROM Emp) e ON d.did = e.did WHERE e.sal > e.avg_sal GROUP BY d.dname;
+
+Question Number 4:
+
+4A. Delete the Unique records (which are seen only once) from table in single shot
+
+ DELETE e1FROM Emp e1
+ JOIN (SELECT col1, col2, COUNT(*) AS count_occurrences FROM Emp
+ GROUP BY col1, col2 HAVING COUNT(*) = 1) e2 ON e1.col1 = e2.col1
+ AND e1.col2 = e2.col2; 
+
+4B. Delete duplicate records ( which are seen more than once ) from table in single shot. 
+
+DELETE FROM Emp
+ WHERE eid IN (SELECT eid FROM
+ (SELECT eid, ROW_NUMBER() OVER
+
+ (PARTITION BY col1, col2 ORDER BY eid) AS rn FROM Emp)
+
+ AS t WHERE rn > 1);
+
