@@ -1,4 +1,4 @@
-#Question Number 1:
+Question Number 1:
 
 1. customer(cust_id, name, income_permonth, gender, location_pincode) cust_id is pk, location_pincode is fk
 on city table
