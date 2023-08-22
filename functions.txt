@@ -1,0 +1,11 @@
+
+-- functions
+SET serveroutput ON;
+CREATE OR REPLACE FUNCTION get_amt(sal number) RETURN  NUMBER IS 
+BEGIN 
+RETURN (sal+10000);
+END;
+/
+select emp_id,emp_name,emp_salary, get_amt(emp_salary) as bonus_sal from employees;
+
+

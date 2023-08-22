@@ -1,0 +1,87 @@
+Create table Employees(employee_id int, name varchar(20), reports_to int, age int);
+insert into Employees (employee_id, name, reports_to, age) values ('9', 'Hercy', NULL, '43');
+insert into Employees (employee_id, name, reports_to, age) values ('6', 'Alice', '9', '41');
+insert into Employees (employee_id, name, reports_to, age) values ('4', 'Bob', '9', '36');
+insert into Employees (employee_id, name, reports_to, age) values ('2', 'Winston', NULL, '37');
+select * from Employees;
+
+SET serveroutput ON 
+DECLARE 
+name1 Employees.name%TYPE;
+age1 Employees.age%TYPE;
+BEGIN
+select name,age into name1,age1 from Employees where employee_id=2;
+dbms_output.put_line(name1);
+dbms_output.put_line(age1);
+END;
+/
+
+-- to retrieve the entire row --> rowtype
+SET serveroutput ON
+DECLARE 
+record Employees%ROWTYPE;
+BEGIN 
+select * into record from Employees where employee_id=2;
+dbms_output.put_line(record.employee_id||record.name||record.age);
+END;
+/
+drop table Employees;
+CREATE TABLE employees (
+    emp_id NUMBER PRIMARY KEY,
+    emp_name VARCHAR2(100) NOT NULL,
+    emp_salary NUMBER
+);
+INSERT INTO employees (emp_id, emp_name, emp_salary) VALUES (1, 'John', 50000);
+INSERT INTO employees (emp_id, emp_name, emp_salary) VALUES (2, 'Jane', 60000);
+INSERT INTO employees (emp_id, emp_name, emp_salary) VALUES (3, 'Michael', 55000);
+INSERT INTO employees (emp_id, emp_name, emp_salary) VALUES (4, 'Emily', 70000);
+select * from employees;
+-- condition statements
+SET serveroutput ON;
+DECLARE 
+name employees.emp_name%TYPE;
+sal employees.emp_salary%TYPE;
+BEGIN
+select emp_name,emp_salary into name,sal from employees where emp_id = 3;
+if sal>=10000 then 
+sal:=70000;
+elsif sal = 55000 then 
+    sal:=80888;
+else 
+    sal:=50000;
+end if ;
+update employees set emp_salary = sal where emp_id = 3;
+dbms_output.put_line(name||sal);
+END;
+/
+select * from employees;
+
+-- implicit cursor
+SET serveroutput ON;
+DECLARE 
+cnt number(3);
+BEGIN 
+update employees set emp_salary = emp_salary+1000 ;
+cnt := SQL%ROWCOUNT;
+dbms_output.put_line(cnt);
+END;
+/
+
+-- explicit cursor
+SET serveroutput ON;
+DECLARE 
+eid employees.emp_id%TYPE;
+ename employees.emp_name%TYPE;
+CURSOR emp_cursor IS SELECT emp_id,emp_name from employees;
+BEGIN
+OPEN emp_cursor;
+LOOP 
+FETCH emp_cursor into eid,ename;
+EXIT WHEN emp_cursor%NOTFOUND;
+dbms_output.put_line(eid||ename);
+END LOOP;
+dbms_output.put_line(emp_cursor%ROWCOUNT);
+CLOSE emp_cursor;
+END;
+/
+

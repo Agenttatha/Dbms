@@ -1,0 +1,84 @@
+-- dml triggers
+CREATE TABLE emp (
+    emp_id NUMBER PRIMARY KEY,
+    emp_name VARCHAR2(100) NOT NULL,
+    emp_salary NUMBER,
+    dept_id NUMBER
+);
+insert into emp (emp_id,emp_name,emp_salary,dept_id) values (1,'shivani',50000,1);
+insert into emp (emp_id,emp_name,emp_salary,dept_id) values (2,'chandana',60000,2);
+insert into emp (emp_id,emp_name,emp_salary,dept_id) values (3,'joshika',40000,1);
+insert into emp (emp_id,emp_name,emp_salary,dept_id) values (4,'swaraali',80000,1);
+CREATE TABLE dept(
+    dept_name VARCHAR2(100),
+    dept_id NUMBER PRIMARY KEY
+)
+insert into dept values ('IT',1);
+insert into dept values ('HR',2);
+-- trigger as soon as we insert a record
+SET serveroutput ON;
+CREATE OR REPLACE TRIGGER emp_insert 
+AFTER INSERT ON emp
+BEGIN 
+dbms_output.put_line('record inserted..');
+END;
+/
+insert into emp values (5,'srija',70000,2);
+select * from emp;
+-- logical triggers update insert delete - DML
+SET serveroutput ON;
+CREATE OR REPLACE TRIGGER restrict_insert 
+BEFORE INSERT OR UPDATE OR DELETE ON emp
+BEGIN 
+IF (TO_CHAR(SYSDATE,'HH24:MI') NOT BETWEEN '09:00' AND '18:00') THEN
+RAISE_APPLICATION_ERROR(-20123,'YOU CAN INSERT DETAILS ONLY BETWEEN 9AM AND 6PM');
+END IF;
+END;
+/
+insert into emp values (7,'meghna',80098,2);
+delete from emp where emp_id=7;
+-- update 
+CREATE OR REPLACE TRIGGER salary_up
+BEFORE UPDATE OF emp_salary on emp
+FOR EACH ROW
+BEGIN 
+IF :NEW.emp_salary<:OLD.emp_salary THEN 
+RAISE_APPLICATION_ERROR(-20123,'UPDATED SAL CANNOT BE LESSER THAN CURRENT SAL');
+END IF;
+END;
+/
+select * from emp;
+update emp set emp_salary=55000 where emp_id=2;
+
+-- 2 tables 'INSTEAD OF' doesnt work in oracle
+CREATE OR REPLACE TRIGGER emp_insert
+INSTEAD OF INSERT on emp
+FOR EACH ROW
+DECLARE
+did number;
+BEGIN 
+select dept_id into did from dept where lower(dept_name)=lower(:NEW.dept_name);
+IF INSERTING THEN 
+insert into emp(:NEW.emp_id,:NEW.emp_name,:NEW.emp_salary,:NEW.dept_id,did);
+END IF;
+END;
+/
+-- triggers DDL - doesnt work in oracle :(
+CREATE OR REPLACE TRIGGER restrict_drop
+BEFORE DROP ON emp 
+BEGIN 
+RAISE_APPLICATION_ERROR(-20123,'CANNOT DROP THE DATABASE');
+END;
+/
+CREATE OR REPLACE TRIGGER restrict_drop
+AFTER DROP ON DATABASE
+DECLARE
+   emp_table VARCHAR2(100);
+BEGIN
+   SELECT ora_dict_obj_name INTO emp_table FROM dual;
+
+   IF emp_table = 'EMP' THEN
+      RAISE_APPLICATION_ERROR(-20123, 'CANNOT DROP THE EMP TABLE');
+   END IF;
+END;
+/
