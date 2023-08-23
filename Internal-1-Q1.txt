@@ -1,0 +1,148 @@
+Internal-1 
+Q1
+-- Create the City table
+CREATE TABLE city (
+    location_pincode INT PRIMARY KEY,
+    cityname VARCHAR(255),
+    state VARCHAR(255)
+);
+
+
+
+-- Create the Customer table
+CREATE TABLE customer (
+    cust_id INT PRIMARY KEY,
+    name VARCHAR(255),
+    income_permonth DECIMAL(10, 2),
+    gender VARCHAR(10),
+    location_pincode INT,
+    FOREIGN KEY (location_pincode) REFERENCES city(location_pincode)
+);
+
+
+
+-- Create the Branch table
+CREATE TABLE branch (
+    ifsc_code VARCHAR(10) PRIMARY KEY,
+    branch_name VARCHAR(255),
+    location_pincode INT,
+    FOREIGN KEY (location_pincode) REFERENCES city(location_pincode)
+);
+
+
+
+-- Create the Accounts table
+CREATE TABLE accounts (
+    account_number INT PRIMARY KEY,
+    cust_id INT,
+    account_type VARCHAR(255),
+    balance_inlakhs DECIMAL(10, 2),
+    ifsc_code VARCHAR(10),
+    FOREIGN KEY (cust_id) REFERENCES customer(cust_id),
+    FOREIGN KEY (ifsc_code) REFERENCES branch(ifsc_code)
+);
+
+-- Insert data into the City table
+INSERT INTO city (location_pincode, cityname, state)
+VALUES
+    (100001, 'City A', 'State X');
+
+INSERT INTO city (location_pincode, cityname, state)
+VALUES
+    (100002, 'City B', 'State Y');
+
+INSERT INTO city (location_pincode, cityname, state)
+VALUES
+    (100003, 'City C', 'State Z');
+
+-- Insert data into the Customer table
+INSERT INTO customer (cust_id, name, income_permonth, gender, location_pincode)
+VALUES
+    (1, 'John Doe', 5000.00, 'Male', 100001);
+
+INSERT INTO customer (cust_id, name, income_permonth, gender, location_pincode)
+VALUES
+    (2, 'Jane Smith', 6000.50, 'Female', 100002);
+
+INSERT INTO customer (cust_id, name, income_permonth, gender, location_pincode)
+VALUES
+    (3, 'Bob Johnson', 7500.75, 'Male', 100003);
+
+-- Insert data into the Branch table
+INSERT INTO branch (ifsc_code, branch_name, location_pincode)
+VALUES
+    ('IFSC001', 'Branch 1', 100001);
+
+INSERT INTO branch (ifsc_code, branch_name, location_pincode)
+VALUES
+    ('IFSC002', 'Branch 2', 100002);
+
+INSERT INTO branch (ifsc_code, branch_name, location_pincode)
+VALUES
+    ('IFSC003', 'Branch 3', 100003);
+
+-- Insert data into the Accounts table
+INSERT INTO accounts (account_number, cust_id, account_type, balance_inlakhs, ifsc_code)
+VALUES
+    (1001, 1, 'Savings', 50000.00, 'IFSC001');
+
+INSERT INTO accounts (account_number, cust_id, account_type, balance_inlakhs, ifsc_code)
+VALUES
+    (1002, 2, 'Checking', 75000.50, 'IFSC002');
+
+INSERT INTO accounts (account_number, cust_id, account_type, balance_inlakhs, ifsc_code)
+VALUES
+    (1003, 3, 'Savings', 100000.75, 'IFSC003');
+
+select * from city;
+select * from branch;
+select * from accounts;
+select * from customer;
+
+--select count(*) from accounts  where
+--accounts.balance_inlakhs>10000 and accounts.ifs
+--1
+SELECT COUNT(*) AS num_of_accounts
+FROM accounts
+WHERE accounts.balance_inlakhs > 100000
+AND accounts.ifsc_code IN (
+    SELECT branch.ifsc_code
+    FROM branch
+    WHERE branch.location_pincode IN (
+        SELECT city.location_pincode
+        FROM city
+        WHERE city.cityname = 'City C'
+    )
+);
+
+--2
+SELECT COUNT(DISTINCT b.ifsc_code) AS num_of_branches
+FROM branch b
+JOIN city c ON b.location_pincode = c.location_pincode
+JOIN accounts a ON b.ifsc_code = a.ifsc_code
+JOIN customer cu ON a.cust_id = cu.cust_id
+WHERE c.cityname = 'City B'
+AND cu.gender = 'Female'
+GROUP BY b.ifsc_code
+HAVING COUNT(DISTINCT a.cust_id) > 2;
+
+--3
+SELECT c.name AS customer_name
+FROM customer c
+JOIN accounts a ON c.cust_id = a.cust_id
+JOIN branch b ON a.ifsc_code = b.ifsc_code
+WHERE b.branch_name = 'Gandipet'
+GROUP BY c.cust_id, c.name
+HAVING COUNT(DISTINCT a.account_type) > 1;
+
+
+--4
+SELECT cityname
+FROM (
+    SELECT c.cityname, AVG(a.balance_inlakhs) AS avg_balance
+    FROM city c
+    JOIN branch b ON c.location_pincode = b.location_pincode
+    JOIN accounts a ON b.ifsc_code = a.ifsc_code
+    GROUP BY c.cityname
+    ORDER BY avg_balance ASC
+) WHERE ROWNUM = 1;

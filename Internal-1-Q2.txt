@@ -1,0 +1,84 @@
+Internal-1 q2
+
+-- Create the 'dept' table
+CREATE TABLE dept (
+    did INT PRIMARY KEY,
+    dname VARCHAR(255)
+);
+
+drop table emp;
+
+-- Create the 'Emp' table
+CREATE TABLE Emp (
+    emp_id INT PRIMARY KEY,
+    ename VARCHAR(255),
+    salary DECIMAL(10, 2),
+    did INT,
+    eid_of_manager INT,
+    FOREIGN KEY (did) REFERENCES dept(did),
+    FOREIGN KEY (eid_of_manager) REFERENCES Emp(emp_id)
+);
+
+
+CREATE TABLE projects (
+    pid INT PRIMARY KEY,
+    eid INT,
+    FOREIGN KEY (eid) REFERENCES Emp(emp_id)
+);
+
+-- Insert data into the 'dept' table
+INSERT INTO dept (did, dname) VALUES (1, 'HR');
+INSERT INTO dept (did, dname) VALUES (2, 'IT');
+INSERT INTO dept (did, dname) VALUES (3, 'Finance');
+
+-- Insert data into the 'Emp' table
+INSERT INTO Emp (emp_id, ename, salary, did, eid_of_manager) VALUES (1, 'John Doe', 60000.00, 1, NULL);
+INSERT INTO Emp (emp_id, ename, salary, did, eid_of_manager) VALUES (2, 'Jane Smith', 75000.50, 2, 1);
+INSERT INTO Emp (emp_id, ename, salary, did, eid_of_manager) VALUES (3, 'Bob Johnson', 85000.75, 1, 1);
+INSERT INTO Emp (emp_id, ename, salary, did, eid_of_manager) VALUES (4, 'Alice Brown', 70000.25, 3, 1);
+
+-- Insert data into the 'projects' table
+INSERT INTO projects (pid, eid) VALUES (101, 2);
+INSERT INTO projects (pid, eid) VALUES (102, 3);
+INSERT INTO projects (pid, eid) VALUES (103, 4);
+
+--1
+
+SELECT COUNT(DISTINCT e1.emp_id) AS num_managers_in_aiml_dept
+FROM Emp e1
+JOIN Emp e2 ON e1.emp_id = e2.eid_of_manager
+JOIN dept d ON e1.did = d.did
+JOIN projects p ON e1.emp_id = p.eid
+WHERE d.dname = 'AIML';
+
+--2
+SELECT e.ename
+FROM Emp e
+JOIN dept d ON e.did = d.did
+WHERE d.dname = 'CSE'
+  AND e.salary > (
+    SELECT MAX(avg_salary)
+    FROM (
+      SELECT AVG(salary) AS avg_salary
+      FROM Emp
+      GROUP BY did
+    )
+  );
+  
+--3
+SELECT d.dname AS DepartmentName
+FROM dept d
+LEFT JOIN Emp e ON d.did = e.did
+LEFT JOIN projects ep ON e.emp_id = ep.eid
+WHERE ep.eid IS NULL;
+
+--4
+SELECT distinct e1.ename AS self_managers
+FROM Emp e1
+JOIN Emp e2 ON e1.emp_id = e2.eid_of_manager;
+
+--5
+SELECT e.ename AS non_managers
+FROM Emp e
+LEFT JOIN Emp subordinates ON e.emp_id = subordinates.eid_of_manager
+WHERE subordinates.emp_id IS NULL;
