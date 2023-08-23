@@ -1,0 +1,105 @@
+-- Create the 'city' table
+CREATE TABLE city (
+    pincode INT PRIMARY KEY,
+    name VARCHAR(255)
+);
+
+-- Insert values into the 'city' table
+INSERT INTO city (pincode, name)
+VALUES (1001, 'City1');
+    INSERT INTO city (pincode, name)
+VALUES(1002, 'City2');
+    INSERT INTO city (pincode, name)
+VALUES(1003, 'City3');
+
+-- Create the 'player' table
+CREATE TABLE player (
+    player_id INT PRIMARY KEY,
+    name VARCHAR(255),
+    game_account_balance DECIMAL(10, 2),
+    location_pincode INT,
+    FOREIGN KEY (location_pincode) REFERENCES city(pincode)
+);
+
+-- Insert values into the 'player' table
+INSERT INTO player (player_id, name, game_account_balance, location_pincode)
+VALUES  (1, 'Player1', 1000.00, 1001);
+  INSERT INTO player (player_id, name, game_account_balance, location_pincode)
+VALUES  (2, 'Player2', 1500.00, 1002);
+   INSERT INTO player (player_id, name, game_account_balance, location_pincode)
+VALUES (3, 'Player3', 800.00, 1003);
+
+-- Create the 'matches' table
+CREATE TABLE matches (
+    match_id INT PRIMARY KEY,
+    type_of_game VARCHAR(255),
+    location_pincode INT,
+    FOREIGN KEY (location_pincode) REFERENCES city(pincode)
+);
+
+-- Insert values into the 'matches' table
+INSERT INTO matches (match_id, type_of_game, location_pincode)
+VALUES(101, 'Game1', 1001);
+   INSERT INTO matches (match_id, type_of_game, location_pincode)
+VALUES(102, 'Game2', 1002);
+     INSERT INTO matches (match_id, type_of_game, location_pincode)
+VALUES(103, 'Game3', 1003);
+
+-- Create the 'transactions' table
+CREATE TABLE transactions (
+    trans_id INT PRIMARY KEY,
+    player_id INT,
+    bet_amount DECIMAL(10, 2),
+    win_or_loss NUMBER(1, 0), -- Use NUMBER to represent boolean (0 or 1)
+    FOREIGN KEY (player_id) REFERENCES player(player_id)
+);
+
+
+-- Insert values into the 'transactions' table
+INSERT INTO transactions (trans_id, player_id, bet_amount, win_or_loss)
+VALUES (1001, 1, 50.00, 0);
+ INSERT INTO transactions (trans_id, player_id, bet_amount, win_or_loss)
+VALUES   (1002, 1, 100.00, 0);
+    INSERT INTO transactions (trans_id, player_id, bet_amount, win_or_loss)
+VALUES(1003, 2, 75.00, 1);
+
+--1
+SELECT name
+FROM (
+    SELECT p.name, SUM(t.bet_amount) as total_lost
+    FROM player p
+    JOIN transactions t ON p.player_id = t.player_id
+    WHERE t.win_or_loss = 0
+    GROUP BY p.name
+    ORDER BY total_lost DESC
+)
+WHERE ROWNUM = 1;
+
+--2
+SELECT city_name
+FROM (
+    SELECT c.name AS city_name, AVG(t.bet_amount) AS avg_bet_amount
+    FROM city c
+    JOIN player p ON c.pincode = p.location_pincode
+    JOIN transactions t ON p.player_id = t.player_id
+    GROUP BY c.name
+    ORDER BY avg_bet_amount DESC
+)
+WHERE ROWNUM = 1;
+
+--3
+SELECT type_of_game
+FROM (
+    SELECT m.type_of_game, COUNT(t.trans_id) AS bet_count
+    FROM matches m
+    LEFT JOIN transactions t ON m.match_id = t.trans_id
+    GROUP BY m.type_of_game
+    ORDER BY COUNT(t.trans_id) -- Order by the count of transactions, not the alias
+)
+WHERE ROWNUM = 1;
+
+--4
+SELECT c.name AS city_name
+FROM city c
+LEFT JOIN player p ON c.pincode = p.location_pincode
+WHERE p.player_id IS NULL
