@@ -1,0 +1,64 @@
+- Create the employee table
+-- Create the department table
+CREATE TABLE department (
+ departmenƟd INT PRIMARY KEY,
+ departmentname VARCHAR(50)
+);
+-- Insert sample values into the department table
+INSERT INTO department (departmenƟd, departmentname)
+VALUES (1, 'Sales');
+INSERT INTO department (departmenƟd, departmentname)
+VALUES (2, 'MarkeƟng');
+INSERT INTO department (departmenƟd, departmentname)
+VALUES (3, 'Finance');
+INSERT INTO department (departmenƟd, departmentname)
+VALUES (4, 'IT');
+-- Create the employee table
+CREATE TABLE employee (
+ employid INT PRIMARY KEY,
+ ename VARCHAR(50),
+ salary DECIMAL(10, 2),
+ departmenƟd INT,
+ FOREIGN KEY (departmenƟd) REFERENCES department(departmenƟd)
+);
+-- Insert sample values into the employee table
+INSERT INTO employee (employid, ename, salary, departmenƟd)
+VALUES (1, 'John Doe', 5000.00, 1);
+INSERT INTO employee (employid, ename, salary, departmenƟd)
+VALUES (2, 'Jane Smith', 6000.00, 2);
+INSERT INTO employee (employid, ename, salary, departmenƟd)
+VALUES (3, 'Michael Johnson', 5500.00, 3);
+INSERT INTO employee (employid, ename, salary, departmenƟd)
+VALUES (4, 'Emily Davis', 4500.00, 1);
+INSERT INTO employee (employid, ename, salary, departmenƟd)
+VALUES (5, 'David Lee', 4000.00, 4);
+select * from employee;
+select * from department;
+--SOLUTIONS
+--avg sal
+select count(employid) from employee e1
+where e1.salary>(select avg(e2.salary) from employee e2 where e2.departmenƟd=e1.departmenƟd)
+ --4th highest
+select e.salary from employee e
+where 3=(select count( disƟnct e1.salary) from employee e1 where e1.salary>e.salary)
+ --unique rows
+select min(rowid),ename from employee group by employid,ename,salary,departmenƟd
+ --duplicate rows
+select employid,ename,salary,departmenƟd from employee
+where rowid not in (select min(rowid) from employee group by
+employid,ename,salary,departmenƟd )
+--alternate
+select ename from employee e
+where rowid > (select min(rowid) from employee e2
+ where e.employid=e2.employid and e.ename=e2.ename and e.salary=e2.salary and
+e.departmenƟd=e2.departmenƟd )
+ --4th highest alternaƟve method
+select salary
+from (
+ select salary,rownum as rn
+ from(
+ select disƟnct salary
+ from employee
+ order by salary desc
+ )
+)where rn=4 
