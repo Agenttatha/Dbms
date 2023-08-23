@@ -1,3 +1,12 @@
+Triggers setup
+
+CREATE USER C##my_common_user IDENTIFIED BY my_password;
+GRANT all privileges TO C##my_common_user;
+
+-- Create a new connection with username as C##my_common_user and password as my_password
+
+
+
 -- dml triggers
 CREATE TABLE emp (
     emp_id NUMBER PRIMARY KEY,
