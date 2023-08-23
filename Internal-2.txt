@@ -23,11 +23,15 @@ is 3rd highest salary of each department.
 
 Ans 2:
 
- SELECT d.dname,SAL AS third_highest_salary
- FROM Dept d JOIN (SELECT eid, did, sal, RANK() OVER
-
- (PARTITION BY did ORDER BY sal DESC) ASsalary_rank FROM Emp) as e
- ON d.did =e.didWHERE e.salary_rank = 3; 
+SELECT d.dname AS DepartmentName, MAX(e1.salary) AS ThirdHighestSalary
+FROM department d
+JOIN employee e1 ON d.did = e1.did
+WHERE 3 = (
+    SELECT COUNT(DISTINCT e2.salary)
+    FROM employee e2
+    WHERE e2.salary > e1.salary AND e1.did = e2.did
+)
+GROUP BY d.dname; 
 
 Question Number 3:
 
@@ -39,9 +43,16 @@ department. Output table should have two column one is dname and other is count 
 
 Ans 3:
 
-SELECT d.dname, COUNT(*) AS employee_count
- FROM Dept d JOIN ( SELECT eid, did, sal, AVG(sal) OVER (PARTITION BY did) AS avg_sal 
- FROM Emp) e ON d.did = e.did WHERE e.sal > e.avg_sal GROUP BY d.dname;
+SELECT d.dname, COUNT(*) AS count_of_employees
+FROM Dept d
+JOIN Emp e ON d.did = e.did
+WHERE e.sal > (
+    SELECT AVG(sal)
+    FROM Emp
+    WHERE did = d.did
+)
+GROUP BY d.dname;
+
 
 Question Number 4:
 
