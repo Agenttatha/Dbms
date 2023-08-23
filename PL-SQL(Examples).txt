@@ -1,0 +1,109 @@
+--Triggers Example
+
+Triggers setup
+
+CREATE USER C##my_common_user IDENTIFIED BY my_password;
+GRANT all privileges TO C##my_common_user;
+
+-- Create a new connection with username as C##my_common_user and password as my_password
+
+-- Create the emp2 table
+CREATE TABLE emp2 (
+    emp_id NUMBER PRIMARY KEY,
+    emp_name VARCHAR2(100) NOT NULL,
+    emp_salary NUMBER,
+    dept_id NUMBER
+);
+
+-- Insert data into the emp2 table
+INSERT INTO emp2 (emp_id, emp_name, emp_salary, dept_id) VALUES (1, 'Balaji', 50000, 1);
+INSERT INTO emp2 (emp_id, emp_name, emp_salary, dept_id) VALUES (4, 'Charan', 60000, 2);
+INSERT INTO emp2 (emp_id, emp_name, emp_salary, dept_id) VALUES (8, 'Akash', 40000, 1);
+INSERT INTO emp2 (emp_id, emp_name, emp_salary, dept_id) VALUES (11, 'Kalyan', 80000, 1);
+
+-- Create the dept table
+CREATE TABLE dept (
+    dept_name VARCHAR2(100),
+    dept_id NUMBER PRIMARY KEY
+);
+
+-- Insert data into the dept table
+INSERT INTO dept VALUES ('IT', 1);
+INSERT INTO dept VALUES ('HR', 2);
+
+-- Create a trigger that runs before inserting a record into emp2
+SET SERVEROUTPUT ON;
+
+CREATE OR REPLACE TRIGGER emp_insert_1 
+BEFORE INSERT ON emp2
+FOR EACH ROW
+BEGIN 
+    DBMS_OUTPUT.PUT_LINE('Record inserted for Employee ID: ' || :NEW.emp_id);
+END;
+/
+
+
+-- Cursor Example
+
+-- Set serveroutput on to enable DBMS_OUTPUT
+SET SERVEROUTPUT ON;
+
+DECLARE
+    e_name VARCHAR(30);
+    
+    -- Define the cursor to select from emp2 table
+    CURSOR cur_employ IS
+        SELECT emp_name FROM emp2 WHERE emp_id > 1;
+BEGIN
+    OPEN cur_employ;
+    
+    -- Loop through the cursor and print employee names
+    LOOP
+        FETCH cur_employ INTO e_name;
+        DBMS_OUTPUT.PUT_LINE(e_name);
+        
+        -- Exit the loop when no more rows are found
+        EXIT WHEN cur_employ%NOTFOUND;
+    END LOOP;
+    
+    -- Close the cursor
+    CLOSE cur_employ;
+END;
+
+-- Functions Example
+
+-- Create or replace a function to increment an employee's salary
+CREATE OR REPLACE FUNCTION increment_salary(
+    p_emp_id NUMBER,
+    p_increment_amount NUMBER
+) RETURN NUMBER
+IS
+    v_current_salary NUMBER;
+BEGIN
+    -- Get the current salary for the specified employee
+    SELECT emp_salary INTO v_current_salary
+    FROM emp2
+    WHERE emp_id = p_emp_id;
+    
+    -- Check if the employee exists
+    IF v_current_salary IS NULL THEN
+        -- Employee not found, return -1 to indicate an error
+        RETURN -1;
+    ELSE
+        -- Increment the salary
+        UPDATE emp2
+        SET emp_salary = v_current_salary + p_increment_amount
+        WHERE emp_id = p_emp_id;
+        
+        -- Return the new salary
+        RETURN v_current_salary + p_increment_amount;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle any exceptions here (e.g., log the error)
+        RETURN -1;
+END;
+/
+
+
+
