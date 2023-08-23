@@ -9,41 +9,84 @@ cust_id is fk on customers , ifsc_code is fk on branch table
 
 Ans 1:
 
-1. Find number of accounts in hyderabad city with balance amount > 1 lakh
+--1
+SELECT COUNT(*) AS num_accounts
+FROM accounts
+WHERE balance_inlakhs > 1 AND cust_id IN (
+    SELECT cust_id
+    FROM customer
+    WHERE location_pincode = (
+        SELECT location_pincode
+        FROM city
+        WHERE cityname = 'City A'
+    )
+);
 
- SELECT COUNT(*) AS num_accounts FROM accounts a WHERE a.cust_id IN (
- SELECT c.cust_id FROM customer c
- JOIN branch b ON c.location_pincode = b.location_pincode
- JOIN city ct ON b.location_pincode = ct.location_pincode WHERE ct.cityname = ‘Hyderabad')
+--2
+SELECT COUNT(*) AS num_branches
+FROM branch
+WHERE location_pincode = (
+    SELECT location_pincode
+    FROM city
+    WHERE cityname = 'City B'
+) AND ifsc_code IN (
+    SELECT ifsc_code
+    FROM accounts
+    WHERE cust_id IN (
+        SELECT cust_id
+        FROM customer
+        WHERE gender = 'Female'
+    )
+    GROUP BY ifsc_code
+    HAVING COUNT(*) > 2
+);
 
- AND a.balance_inlakhs > 1;
+--3
+SELECT name
+FROM customer
+WHERE cust_id IN (
+    SELECT cust_id
+    FROM accounts
+    WHERE ifsc_code IN (
+        SELECT ifsc_code
+        FROM branch
+        WHERE branch_name = 'Gandipet'
+    )
+    GROUP BY cust_id
+    HAVING COUNT(*) > 1
+);
 
-2. Find number of branches in vizag city with female accounts > 2
+--4
+SELECT cityname
+FROM city
+WHERE location_pincode = (
+    SELECT location_pincode
+    FROM customer
+    WHERE location_pincode = (
+        SELECT location_pincode
+        FROM accounts
+        GROUP BY location_pincode
+        ORDER BY AVG(balance_inlakhs) ASC
+        LIMIT 1
+    )
+    LIMIT 1
+);
 
- SELECT COUNT(DISTINCT b.branch_name) AS num_branches
- FROM branch b
- JOIN city cty ON b.location_pincode = cty.location_pincode
- JOIN customer c ON b.location_pincode = c.location_pincode
- WHERE cty.cityname = 'Vizag'
- AND c.gender = 'Female'
- GROUP BY b.branch_name
- HAVING COUNT(DISTINCT c.cust_id) > 2; 
+--4
 
-3. Find customer names from any specified branch like gandipet who are having more than one account. ( like
-savings, current , loan etc ). 
-
-SELECT c.name FROM customer c WHERE c.location_pincode
-IN (SELECT b.location_pincode FROM branch b WHERE b.branch_name = ‘Gandipet’) AND c.cust_id
-IN (SELECT cust_id FROM accounts GROUP BY cust_id HAVING COUNT(*) > 1);
-
-4. Find city name which is having minimum average balance amount among all cities.
-
- SELECT cityname, avg_balanceFROM (SELECT ct.cityname, AVG(a.balance_inlakhs)
- AS avg_balance FROM accounts a JOIN customer c ON a.cust_id = c.cust_id
- JOIN branch b ON c.location_pincode = b.location_pincode
- JOIN city ct ON b.location_pincode = ct.location_pincode
- GROUP BY ct.cityname) city_avg_balances
- ORDER BY avg_balance ASC LIMIT 1; 
+SELECT cityname
+FROM city
+WHERE location_pincode = (
+    SELECT location_pincode
+    FROM customer
+    WHERE location_pincode = (
+        SELECT location_pincode
+        FROM accounts
+        GROUP BY location_pincode
+        ORDER BY AVG(balance_inlakhs) ASC
+    )
+    FETCH FIRST 1 ROWS ONLY
+); 
 
 Question Number 2:
 
@@ -56,33 +99,44 @@ Ans 2:
 
 1.Find the number of managers from the AIML dept who are doing projects:
 
-SELECT COUNT(DISTINCT E1.emp_id) AS num_managers
-FROM Emp E1
-JOIN Emp E2 ON E1.emp_id = E2.eid_of_manager
-JOIN dept D ON E1.did = D.did
-JOIN projects P ON E1.emp_id = P.eid
-WHERE D.dname = ‘AIML'; 
+SELECT COUNT(distinct emp1.eid_of_manager) AS num_managers
+FROM Emp1
+WHERE did = (SELECT did FROM dept1 WHERE dname = 'AIML') AND emp_id IN (SELECT eid FROM projects1); 
 
 2. Find the employee names from the CSE dept whose salary is greater than the maximum average salary of all departments:
 
- SELECT E.ename FROM Emp E JOIN dept D ON E.did = D.did
- WHERE D.dname = 'CSE' AND E.salary > (SELECT MAX(avg_salary)
- FROM (SELECT AVG(salary) as avg_salary FROM Emp GROUP BY did) AS avg_salaries); 
+SELECT ename
+FROM Emp1
+WHERE did = (SELECT did FROM dept1 WHERE dname = 'CSE')
+  AND salary > (SELECT MAX(avg_salary) FROM (SELECT AVG(salary) AS avg_salary FROM Emp1 GROUP BY did) AS avg_salaries);
 
 3. Find the dept names from which none of the employees are doing atleast one projects:
 
- SELECT dname FROM dept D LEFT JOIN Emp E ON D.did = E.did
- LEFT JOIN projects P ON E.emp_id = P.eid GROUP BY D.did, dname
- HAVING COUNT(P.pid) = 0; 
+SELECT dname
+FROM dept1
+WHERE did NOT IN (SELECT did FROM Emp1 WHERE emp_id IN (SELECT eid FROM projects1));
 
 4. Find employee names who are managers to themselves.
 
- Select Ename from Emp E where emp_id = eid_of _managers ; 
+SELECT ename
+FROM Emp1
+WHERE emp_id = eid_of_manager;
 
 5. Find employee names who are not managers to any employees.
 
- SELECT ename FROM Emp E
- WHERE emp_id NOT IN (SELECT DISTINCT eid_of_manager FROM Emp);
+
+SELECT ename
+FROM Emp1
+WHERE emp_id NOT IN (SELECT DISTINCT eid_of_manager FROM Emp1);
+
+
+
+
+
+
+
+
+
 
 Question Number 3:
 
@@ -98,27 +152,65 @@ Ans 3:
 
 1. Find the artists who are both directors and producers for action genre.
 
- SELECT name FROM artists WHERE artist_id IN (SELECT artist_id FROM artists_skills
- WHERE skill_id IN (SELECT skill_id FROM skills WHERE skill_name IN 
- ('Director', 'Producer') ) GROUP BY artist_id HAVING COUNT(DISTINCT skill_id) = 2)
- AND artist_id IN ( SELECT artist_id FROM moviesWHERE genre = ‘Action');
+
+SELECT name
+FROM artists
+WHERE artist_id IN (
+    SELECT artist_id
+    FROM artists_skills
+    WHERE skill_id IN (
+        SELECT skills_id
+        FROM skills
+        WHERE skill_name = 'director' OR skill_name = 'producer'
+    )
+)
+AND artist_id IN (
+    SELECT artist_id
+    FROM movies
+    WHERE genre = 'action'
+);
+
 
 2. Find music directors from Hyderabad city who have at least 5 years of experience as singers in telugu
 movies.
 
- SELECT name FROM artists WHERE artist_id IN (SELECT artist_id
- FROM artists_skills WHERE skill_id =
- (SELECT skill_id FROM skills WHERE skill_name = 'Music Director'))
- AND artist_id IN (SELECT artist_id FROM artists_skills WHERE skill_id =
- (SELECT skill_id FROM skills WHERE skill_name = 'Singer')
- AND exp_in_years >= 5) AND location_pincode
- IN (SELECT pincode FROM city WHERE cityname = ‘Hyderabad');
+SELECT name
+FROM artists
+WHERE artist_id IN (
+    SELECT artist_id
+    FROM artists_skills
+    WHERE skill_id = (
+        SELECT skills_id
+        FROM skills
+        WHERE skill_name = 'music director'
+    )
+    AND exp_in_years >= 5
+    AND artist_id IN (
+        SELECT artist_id
+        FROM movies
+        WHERE language = 'Telugu'
+    )
+)
+AND location_pincode IN (
+    SELECT pincode
+    FROM city
+    WHERE cityname = 'Hyderabad'
+);
 
 3. Find all artists names who commonly worked for kgf1, RRR and pushpa movies.
 
- SELECT name FROM artists WHERE artist_id IN
- (SELECT artist_id FROM movies WHERE movie_name IN ('KGF1', 'RRR', 'Pushpa') GROUP BY
-artist_id HAVING COUNT(DISTINCT movie_name) = 3);
+
+SELECT name
+FROM artists
+WHERE artist_id IN (
+    SELECT artist_id
+    FROM movies
+    WHERE movie_name IN ('KGF1', 'RRR', 'Pushpa')
+);
+
+
+
+
 
 Question Number 4:
 
@@ -132,29 +224,76 @@ Answer 4:
 
 1. Find the player name who lost maximum amount in bets.
 
- SELECT name FROM player WHERE player_id =
- (SELECT player_id FROM transactions WHERE win_or_loss =
- FALSE GROUP BY player_id ORDER BY SUM(bet_amount) DESC LIMIT 1); 
+SELECT name
+FROM player
+WHERE player_id = (
+    SELECT player_id
+    FROM transactions
+    WHERE win_or_loss = false
+    GROUP BY player_id
+    ORDER BY SUM(bet_amount) DESC
+    FETCH FIRST 1 ROWS ONLY
+); 
 
 2. Find city names with maximum average bet amount
 
- SELECT name AS city_name FROM city WHERE pincode = 
-(SELECT location_pincode FROM player WHERE player_id =
-(SELECT player_id FROM transactions GROUP BY player_id ORDER BY
-AVG(bet_amount) DESC LIMIT 1));
+SELECT name
+FROM city
+WHERE pincode IN (
+    SELECT location_pincode
+    FROM player
+    WHERE player_id IN (
+        SELECT player_id
+        FROM transactions
+        GROUP BY player_id
+        HAVING AVG(bet_amount) = (
+            SELECT MAX(avg_bet_amount)
+            FROM (
+                SELECT AVG(bet_amount) AS avg_bet_amount
+                FROM transactions
+                GROUP BY player_id
+            ) AS avg_bets
+        )
+    )
+);
 
 3.  Find the type of game which is having minimum number of bets.
 
- SELECT type_of_game
- FROM matches
- WHERE match_id = (SELECT match_id FROM transactions GROUP BY match_id
- ORDER BY COUNT(trans_id) LIMIT 1); 
+SELECT type_of_game
+FROM matches
+WHERE match_id = (
+    SELECT match_id
+    FROM transactions
+    GROUP BY match_id
+    ORDER BY COUNT(*) ASC
+    FETCH FIRST 1 ROWS ONLY
+);
 
 4. Find city names from which no citizens bets done so far.
 
- SELECT name AS city_name FROM city WHERE pincode NOT IN
- (SELECT DISTINCT location_pincode FROM player WHERE player_id IN
- (SELECT player_id FROM transactions));
+SELECT name
+FROM city
+WHERE pincode NOT IN (
+    SELECT location_pincode
+    FROM player
+    WHERE player_id IN (
+        SELECT player_id
+        FROM transactions
+    )
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
