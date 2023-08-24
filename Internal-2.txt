@@ -103,6 +103,24 @@ GROUP BY d.dname;
 
 Question Number 4:
 
+CREATE TABLE sample (
+col1 varchar(10),
+col2 varchar(10),
+);
+
+INSERT INTO sample  
+VALUES
+('X','Y');
+INSERT INTO sample  
+VALUES
+('A','B');
+INSERT INTO sample  
+VALUES
+('X','Y');
+INSERT INTO sample  
+VALUES
+('K','L');
+
 4A. Delete the Unique records (which are seen only once) from table in single shot
 
  DELETE e1FROM Emp e1
