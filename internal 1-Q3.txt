@@ -1,0 +1,112 @@
+-- Create the tables
+CREATE TABLE artists (
+    artist_id INT PRIMARY KEY,
+    name VARCHAR(50),
+    location_pincode INT
+);
+
+CREATE TABLE skills (
+    skills_id INT PRIMARY KEY,
+    skill_name VARCHAR(50)
+);
+
+CREATE TABLE artists_skills (
+    artist_id INT,
+    skill_id INT,
+    exp_in_years INT,
+    PRIMARY KEY (artist_id, skill_id)
+);
+
+CREATE TABLE movies (
+    movie_name VARCHAR(50),
+    artist_id INT,
+    language VARCHAR(20),
+    genre VARCHAR(20),
+    PRIMARY KEY (movie_name, artist_id)
+);
+
+CREATE TABLE city (
+    pincode INT PRIMARY KEY,
+    cityname VARCHAR(50),
+    state VARCHAR(50)
+);
+
+-- Insert sample data
+INSERT INTO artists VALUES (1, 'Director1', 12345);
+INSERT INTO artists VALUES (2, 'Producer1', 12345);
+INSERT INTO artists VALUES (3, 'MusicDirector1', 67890);
+INSERT INTO artists VALUES (4, 'Artist1', 11111);
+
+INSERT INTO skills VALUES (1, 'director');
+INSERT INTO skills VALUES (2, 'producer');
+INSERT INTO skills VALUES (3, 'music director');
+INSERT INTO skills VALUES (4, 'singer');
+
+INSERT INTO artists_skills VALUES (1, 1, 10);
+INSERT INTO artists_skills VALUES (2, 2, 8);
+INSERT INTO artists_skills VALUES (3, 3, 5);
+INSERT INTO artists_skills VALUES (4, 4, 3);
+
+INSERT INTO movies VALUES ('KGF1', 1, 'Telugu', 'action');
+INSERT INTO movies VALUES ('RRR', 2, 'Telugu', 'action');
+INSERT INTO movies VALUES ('Pushpa', 3, 'Telugu', 'action');
+
+INSERT INTO city VALUES (12345, 'Hyderabad', 'Telangana');
+INSERT INTO city VALUES (67890, 'Bangalore', 'Karnataka');
+
+--1
+
+
+SELECT name
+FROM artists
+WHERE artist_id IN (
+    SELECT artist_id
+    FROM artists_skills
+    WHERE skill_id IN (
+        SELECT skills_id
+        FROM skills
+        WHERE skill_name = 'director' OR skill_name = 'producer'
+    )
+)
+AND artist_id IN (
+    SELECT artist_id
+    FROM movies
+    WHERE genre = 'action'
+);
+
+
+--2
+
+SELECT name
+FROM artists
+WHERE artist_id IN (
+    SELECT artist_id
+    FROM artists_skills
+    WHERE skill_id = (
+        SELECT skills_id
+        FROM skills
+        WHERE skill_name = 'music director'
+    )
+    AND exp_in_years >= 5
+    AND artist_id IN (
+        SELECT artist_id
+        FROM movies
+        WHERE language = 'Telugu'
+    )
+)
+AND location_pincode IN (
+    SELECT pincode
+    FROM city
+    WHERE cityname = 'Hyderabad'
+);
+
+--3--
+
+
+SELECT name
+FROM artists
+WHERE artist_id IN (
+    SELECT artist_id
+    FROM movies
+    WHERE movie_name IN ('KGF1', 'RRR', 'Pushpa')
+);
