@@ -89,6 +89,54 @@ Find the number of employees in each department whose salary is greater than ave
 department. Output table should have two column one is dname and other is count of employees as said above.
 
 Ans 3:
+-- Creating the Dept table
+CREATE TABLE Dept (
+    did NUMBER PRIMARY KEY,
+    dname VARCHAR2(50)
+);
+
+-- Inserting sample department data
+INSERT INTO Dept (did, dname)
+VALUES
+    (1, 'HR'),
+    (2, 'Engineering'),
+    (3, 'Sales');
+
+-- Creating the Emp table
+CREATE TABLE Emp (
+    eid NUMBER PRIMARY KEY,
+    ename VARCHAR2(50),
+    sal NUMBER(10, 2),
+    did NUMBER,
+   
+);
+
+-- Inserting sample employee data
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (1, 'Alice', 60000.00, 1);
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (2, 'Bob', 75000.00, 1);
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (3, 'Charlie', 80000.00, 2);
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (4, 'David', 90000.00, 2);
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (5, 'Eve', 50000.00, 3);
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (6, 'Frank', 55000.00, 3);
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (7, 'Grace', 60000.00, 3);
+INSERT INTO Emp (eid, ename, sal, did)
+VALUES
+    (8, 'Helen', 70000.00, 3);
+
 
 SELECT d.dname, COUNT(*) AS count_of_employees
 FROM Dept d
