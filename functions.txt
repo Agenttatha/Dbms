@@ -1,11 +1,23 @@
 
 -- functions
-SET serveroutput ON;
-CREATE OR REPLACE FUNCTION get_amt(sal number) RETURN  NUMBER IS 
-BEGIN 
-RETURN (sal+10000);
-END;
-/
-select emp_id,emp_name,emp_salary, get_amt(emp_salary) as bonus_sal from employees;
+set serveroutput on
+create or replace function adder(n1 in number, n2 in number)    
+return number    
+is     
+n3 number(8);    
+begin    
+n3 :=n1+n2;    
+return n3;    
+end;    
+/    
+
+
+DECLARE    
+   n3 number(2);    
+BEGIN    
+   n3 := adder(11,22);    
+   dbms_output.put_line('Addition is: ' || n3);    
+END;    
+/    
 
 
