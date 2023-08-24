@@ -8,6 +8,26 @@ department and lives in other than Hyderabad
 
 Ans 1:
 
+CREATE TABLE emp (
+    eid INT,
+    ename VARCHAR(50),
+    sal DECIMAL(10, 2),
+    did INT,
+    city varchar(20)
+);
+drop table emp;
+ 
+INSERT INTO emp  VALUES (1, 'Employee 1', 1000, 1,'a');
+ INSERT INTO emp  VALUES      (2, 'Employee 2', 2000, 1,'b');
+  INSERT INTO emp  VALUES     (3, 'Employee 3', 1500, 1,'c');
+  INSERT INTO emp  VALUES     (4, 'Employee 4', 3000, 2,'b');
+  INSERT INTO emp  VALUES     (5, 'Employee 5', 2500, 2,'b');
+    INSERT INTO emp  VALUES   (6, 'Employee 6', 1800, 2,'a');
+   INSERT INTO emp  VALUES    (7, 'Employee 7', 2200, 3,'a');
+     INSERT INTO emp  VALUES  (8, 'Employee 8', 2400, 3,'c');
+     INSERT INTO emp  VALUES  (8, 'Employee 9', 1800, 3,'c');
+
+
  SELECT e.ename, d.dname, e.city, e.sal
  FROM Emp e JOIN Dept d ON e.did = d.did
  WHERE e.sal < ( SELECT AVG(sal)
@@ -22,6 +42,33 @@ Find 3rd highest salary of each department. Output table should have two columns
 is 3rd highest salary of each department.
 
 Ans 2:
+CREATE TABLE emp (
+    eid INT,
+    ename VARCHAR(50),
+    sal DECIMAL(10, 2),
+    did INT
+);
+ 
+INSERT INTO emp (eid, ename, sal, did) VALUES (1, 'Employee 1', 1000, 1);
+ INSERT INTO emp (eid, ename, sal, did) VALUES      (2, 'Employee 2', 2000, 1);
+  INSERT INTO emp (eid, ename, sal, did) VALUES     (3, 'Employee 3', 1500, 1);
+  INSERT INTO emp (eid, ename, sal, did) VALUES     (4, 'Employee 4', 3000, 2);
+  INSERT INTO emp (eid, ename, sal, did) VALUES     (5, 'Employee 5', 2500, 2);
+    INSERT INTO emp (eid, ename, sal, did) VALUES   (6, 'Employee 6', 1800, 2);
+   INSERT INTO emp (eid, ename, sal, did) VALUES    (7, 'Employee 7', 2200, 3);
+     INSERT INTO emp (eid, ename, sal, did) VALUES  (8, 'Employee 8', 2400, 3);
+     INSERT INTO emp (eid, ename, sal, did) VALUES  (8, 'Employee 9', 1800, 3);
+ 
+
+ 
+CREATE TABLE dept (
+    did INT,
+    dname VARCHAR(50)
+);
+ 
+INSERT INTO dept (did, dname) VALUES (1, 'Department 1');
+ INSERT INTO dept (did, dname) VALUES      (2, 'Department 2');
+    INSERT INTO dept (did, dname) VALUES   (3, 'Department 3');
 
 SELECT d.dname AS DepartmentName, MAX(e1.salary) AS ThirdHighestSalary
 FROM department d
